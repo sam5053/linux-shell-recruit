@@ -1,10 +1,29 @@
 #!/usr/bin/env bash
 
-# Task 07: complete this script.
-# Usage: ./scripts/analyze.sh FILE
+if [[ $# -ne 1 ]]; then
+    echo "Usage: $0 FILE" >&2
+    exit 1
+fi
 
-# TODO: validate arguments
-# TODO: validate file existence
-# TODO: print:
-# Total ERROR: <number>
-# Top Code: <code>
+log_file="$1"
+
+if [[ ! -f "$log_file" ]]; then
+    echo "Error: file not found: $log_file" >&2
+    exit 1
+fi
+
+error_count=$(grep -c 'ERROR' -- "$log_file")
+
+top_code=$(
+    grep 'ERROR' -- "$log_file" |
+        grep -o 'code=[^[:space:]]*' |
+        cut -d= -f2 |
+        sort |
+        uniq -c |
+        sort -nr |
+        head -n 1 |
+        awk '{print $2}'
+)
+
+printf 'Total ERROR: %s\n' "$error_count"
+printf 'Top Code: %s\n' "$top_code"
